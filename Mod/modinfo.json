@@ -1,11 +1,11 @@
 {
   "id": "dllmeadow",
-  "name": "DLL Meadow",
+  "name": "Daddy Long Legs in Meadow",
   "version": "0.1.0.0",
   "target_game_version": "v1.9.15",
-  "authors": "you",
-  "description": "add your favorite long legs to meadow mode",
-  "requirements": ["henpemaz_rainmeadow", "rwremix"],
-  "requirements_names": ["Rain Meadow", "Rain World Remix"],
+  "authors": "liz",
+  "description": "Adds your favorite long legs to meadow mode; letting you play as the rot. The rot must consume... NOTE: Traversal can be tricky!",
+  "requirements": ["henpemaz_rainmeadow", "rwremix", "moreslugcats"],
+  "requirements_names": ["Rain Meadow", "Rain World Remix", "More Slugcats"],
   "checksum_override_version": false
 }
