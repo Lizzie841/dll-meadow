@@ -1,4 +1,3 @@
-using Mono.Cecil.Cil;
 using MonoMod.Cil;
 using RWCustom;
 using System;
@@ -6,7 +5,7 @@ using UnityEngine;
 
 namespace DllMeadow
 {
-    class LongLegsController : CreatureController
+    class LongLegsController : RainMeadow.CreatureController
     {
         private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
@@ -76,7 +75,7 @@ namespace DllMeadow
             }
         }
 
-        public LongLegsController(Creature creature, OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
+        public LongLegsController(Creature creature, RainMeadow.OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
         {
         }
 
