@@ -43,7 +43,7 @@ namespace DllMeadow
             //todo: custom long legs call (how do they even???)
             voiceId = RM_LongLegs_Call,
             selectSpriteIndexes = new[] { 2 },
-            startingCoords = new WorldCoordinate("SS_D05", 3, 3, -1),
+            startingCoords = new WorldCoordinate("GW_C02", 3, 3, -1),
         });
         public static RainMeadow.MeadowProgression.Skin DaddyLongLegs_Purple = new("DaddyLongLegs_Purple", true, new()
         {
