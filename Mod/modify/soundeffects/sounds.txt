@@ -1,1 +1,3 @@
 [ADD]RM_LongLegs_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_Centipede_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_DropBug_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2

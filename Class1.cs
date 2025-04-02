@@ -91,7 +91,7 @@ namespace DllMeadow
             emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
             voiceId = RM_Centipede_Call,
             selectSpriteIndexes = new[] { 2 },
-            startingCoords = new WorldCoordinate("GW_C02", 16, 16, -1),
+            startingCoords = new WorldCoordinate("SI_D02", 16, 16, -1),
         });
         public static RainMeadow.MeadowProgression.Skin Centipede_Small = new("Centipede_Small", true, new()
         {
@@ -131,13 +131,21 @@ namespace DllMeadow
         internal static SoundID RM_DropBug_Call = new("RM_DropBug_Call", true);
         public static RainMeadow.MeadowProgression.Character DropBug = new("DropBug", true, new()
         {
-            displayName = "DROPBUG",
+            displayName = "DROPWIG",
             emotePrefix = "dropbug_",
             emoteAtlas = "emotes_dropbug",
             emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
             voiceId = RM_DropBug_Call,
             selectSpriteIndexes = new[] { 2 },
-            startingCoords = new WorldCoordinate("GW_C02", 16, 16, -1),
+            startingCoords = new WorldCoordinate("SU_B08", 16, 16, -1),
+        });
+        public static RainMeadow.MeadowProgression.Skin Dropbug_Normal = new("Dropbug_Normal", true, new()
+        {
+            character = Centipede,
+            displayName = "Dropbug",
+            creatureType = CreatureTemplate.Type.DropBug,
+            randomSeed = 9211,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
         // =============================================================
 
