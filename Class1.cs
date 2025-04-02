@@ -126,6 +126,20 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x2796c2),
         });
         // =============================================================
+        // CENTIPEDE
+        internal static MenuScene.SceneID Slugcat_MeadowDropBug = new("Slugcat_MeadowDropBug", true);
+        internal static SoundID RM_DropBug_Call = new("RM_DropBug_Call", true);
+        public static RainMeadow.MeadowProgression.Character DropBug = new("DropBug", true, new()
+        {
+            displayName = "DROPBUG",
+            emotePrefix = "dropbug_",
+            emoteAtlas = "emotes_dropbug",
+            emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
+            voiceId = RM_DropBug_Call,
+            selectSpriteIndexes = new[] { 2 },
+            startingCoords = new WorldCoordinate("GW_C02", 16, 16, -1),
+        });
+        // =============================================================
 
         public void OnEnable()
         {
@@ -148,6 +162,10 @@ namespace DllMeadow
                 else if (creature is Centipede p2)
                 {
                     new CentipedeController(p2, oc, 0, customization);
+                }
+                else if (creature is DropBug p3)
+                {
+                    new DropBugController(p3, oc, 0, customization);
                 }
                 else
                 {
@@ -198,6 +216,27 @@ namespace DllMeadow
                     self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
                     self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
                     self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
+                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
+                }
+            }
+            // DROPBUG
+            else if (self.sceneID == Slugcat_MeadowDropBug)
+            {
+                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - dropbug";
+                if (self.flatMode)
+                {
+                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
+                }
+                else
+                {
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
                     (self as InteractiveMenuScene).idleDepths.Add(3.2f);
                     (self as InteractiveMenuScene).idleDepths.Add(2.2f);
                     (self as InteractiveMenuScene).idleDepths.Add(2.1f);
@@ -271,6 +310,26 @@ namespace DllMeadow
                         self.Container.AddChild(self.markGlow);
                     }
                 }
+                else if (mcsp.character == DropBug)
+                {
+                    var sceneID = Slugcat_MeadowDropBug;
+                    self.sceneOffset = new Vector2(-10f, 100f);
+                    self.slugcatDepth = 3.1000001f;
+                    //
+                    self.slugcatImage = new InteractiveMenuScene(self.menu, self, sceneID);
+                    self.subObjects.Add(self.slugcatImage);
+                    if (self.HasMark)
+                    {
+                        self.markSquare = new FSprite("pixel", true);
+                        self.markSquare.scale = 14f;
+                        self.markSquare.color = Color.Lerp(self.effectColor, Color.white, 0.7f);
+                        self.Container.AddChild(self.markSquare);
+                        self.markGlow = new FSprite("Futile_White", true);
+                        self.markGlow.shader = self.menu.manager.rainWorld.Shaders["FlatLight"];
+                        self.markGlow.color = self.effectColor;
+                        self.Container.AddChild(self.markGlow);
+                    }
+                }
                 else
                 {
                     orig(self, ascended);
@@ -292,6 +351,7 @@ namespace DllMeadow
                 {
                     LongLegsController.EnableLongLegs();
                     CentipedeController.EnableCentipede();
+                    DropBugController.EnableDropBug();
                     var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
                     var methTo = typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
                     var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
