@@ -16,7 +16,6 @@ using UnityEngine;
 
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
-using MonoMod.RuntimeDetour;
 
 [assembly: AssemblyVersion(DllMeadow.DllMeadow.MeadowVersionStr)]
 #pragma warning disable CS0618
@@ -43,7 +42,7 @@ namespace DllMeadow
             //todo: custom long legs call (how do they even???)
             voiceId = RM_LongLegs_Call,
             selectSpriteIndexes = new[] { 2 },
-            startingCoords = new WorldCoordinate("GW_C02", 3, 3, -1),
+            startingCoords = new WorldCoordinate("GW_C02", 16, 16, -1),
         });
         public static RainMeadow.MeadowProgression.Skin DaddyLongLegs_Purple = new("DaddyLongLegs_Purple", true, new()
         {
@@ -81,11 +80,16 @@ namespace DllMeadow
 
         public class DllHooks
         {
-            private static void BindAvatar(Creature creature, RainMeadow.OnlineCreature oc, RainMeadow.MeadowAvatarData customization)
+            private delegate void orig_BindAvatar(Creature creature, RainMeadow.OnlineCreature oc, RainMeadow.MeadowAvatarData customization);
+            private static void BindAvatar(orig_BindAvatar orig, Creature creature, RainMeadow.OnlineCreature oc, RainMeadow.MeadowAvatarData customization)
             {
                 if (creature is DaddyLongLegs player)
                 {
                     new LongLegsController(player, oc, 0, customization);
+                }
+                else
+                {
+                    orig(creature, oc, customization);
                 }
             }
         }
@@ -170,21 +174,22 @@ namespace DllMeadow
         private void RainWorld_OnModsInit(On.RainWorld.orig_OnModsInit orig, RainWorld self)
         {
             orig(self);
-            if (init) return;
-            init = true;
-            try
+            if (!init)
             {
-                LongLegsController.EnableLongLegs();
-                var d = new Hook(
-                    typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static),
-                    typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static)
-                );
-                fullyInit = true;
-            }
-            catch (Exception e)
-            {
-                Logger.LogError(e);
-                fullyInit = false;
+                init = true;
+                try
+                {
+                    LongLegsController.EnableLongLegs();
+                    var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
+                    var methTo = typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
+                    var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
+                    fullyInit = true;
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e);
+                    fullyInit = false;
+                }
             }
         }
     }

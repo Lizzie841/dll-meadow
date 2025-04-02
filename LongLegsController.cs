@@ -10,7 +10,7 @@ namespace DllMeadow
         private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
 
-        private DaddyLongLegs longlegs => creature as DaddyLongLegs;
+        private readonly DaddyLongLegs longlegs;
 
         public static void EnableLongLegs()
         {
@@ -75,8 +75,29 @@ namespace DllMeadow
             }
         }
 
-        public LongLegsController(Creature creature, RainMeadow.OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
+        internal void ModifyBodyColor(RainMeadow.MeadowAvatarData self, ref Color ogColor)
         {
+            if (self.skinData.baseColor.HasValue)
+            {
+                ogColor = self.skinData.baseColor.Value;
+            }
+            if (self.effectiveTintAmount > 0f)
+            {
+                var hslTint = RainMeadow.Extensions.ToHSL(self.tint);
+                var hslOgColor = RainMeadow.Extensions.ToHSL(ogColor);
+                ogColor = Color.Lerp(HSLColor.Lerp(hslOgColor, hslTint, self.effectiveTintAmount).rgb, Color.Lerp(ogColor, self.tint, self.effectiveTintAmount), 0.5f); // lerp in average of hsl and rgb, neither is good on its own
+            }
+        }
+
+        public LongLegsController(DaddyLongLegs creature, RainMeadow.OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
+        {
+            this.longlegs = creature;
+            var c1 = this.longlegs.effectColor;
+            this.ModifyBodyColor(customization, ref c1);
+            this.longlegs.effectColor = c1;
+            var c2 = this.longlegs.eyeColor;
+            this.ModifyBodyColor(customization, ref c2);
+            this.longlegs.eyeColor = c2;
         }
 
         protected override void LookImpl(Vector2 pos)
