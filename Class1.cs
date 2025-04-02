@@ -59,7 +59,7 @@ namespace DllMeadow
         {
             character = DaddyLongLegs,
             displayName = "Purple (Mother)",
-            creatureType = DLCSharedEnums.CreatureTemplateType.TerrorLongLegs,
+            creatureType = CreatureTemplate.Type.DaddyLongLegs, //default, changed at runtime
             randomSeed = 9814,
             previewColor = RainMeadow.Extensions.ColorFromHex(0x460fdb),
         });
@@ -121,7 +121,7 @@ namespace DllMeadow
         {
             character = Centipede,
             displayName = "Aquacenti",
-            creatureType = DLCSharedEnums.CreatureTemplateType.AquaCenti,
+            creatureType = CreatureTemplate.Type.Centiwing, //default, changed at runtime
             randomSeed = 9236,
             previewColor = RainMeadow.Extensions.ColorFromHex(0x2796c2),
         });
@@ -141,7 +141,7 @@ namespace DllMeadow
         });
         public static RainMeadow.MeadowProgression.Skin Dropbug_Normal = new("Dropbug_Normal", true, new()
         {
-            character = Centipede,
+            character = DropBug,
             displayName = "Dropbug",
             creatureType = CreatureTemplate.Type.DropBug,
             randomSeed = 9211,
@@ -360,6 +360,17 @@ namespace DllMeadow
                     LongLegsController.EnableLongLegs();
                     CentipedeController.EnableCentipede();
                     DropBugController.EnableDropBug();
+
+                    // fix
+                    if (DLCSharedEnums.CreatureTemplateType.AquaCenti != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[Centipede_Aquacenti].creatureType = DLCSharedEnums.CreatureTemplateType.AquaCenti;
+                    }
+                    else if (DLCSharedEnums.CreatureTemplateType.TerrorLongLegs != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[DaddyLongLegs_Purple].creatureType = DLCSharedEnums.CreatureTemplateType.TerrorLongLegs;
+                    }
+
                     var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
                     var methTo = typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
                     var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
