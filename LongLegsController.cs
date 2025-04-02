@@ -12,7 +12,7 @@ namespace DllMeadow
 
         private readonly DaddyLongLegs longlegs;
 
-        public static void EnableLongLegs()
+        internal static void EnableLongLegs()
         {
             On.DaddyLongLegs.Update += DaddyLongLegs_Update;
             On.DaddyLongLegs.Act += DaddyLongLegs_Act;

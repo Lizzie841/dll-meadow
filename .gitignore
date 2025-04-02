@@ -3,3 +3,5 @@ bin/
 lib/
 log.txt
 Mod/plugins
+*.tar.gz
+DllMeadow/
