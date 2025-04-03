@@ -22,7 +22,7 @@ using MonoMod.Cil;
 [assembly: SecurityPermission(SecurityAction.RequestMinimum, SkipVerification = true)]
 namespace DllMeadow
 {
-    [BepInPlugin("liz.dllmeadow", "DllMeadow", MeadowVersionStr)]
+    [BepInPlugin("danish.drmorecreaturesformeadow", "DllMeadow", MeadowVersionStr)]
     [BepInDependency("henpemaz.rainmeadow", BepInDependency.DependencyFlags.SoftDependency)]
     public partial class DllMeadow : BaseUnityPlugin
     {

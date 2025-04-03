@@ -1,10 +1,10 @@
 {
-  "id": "dllmeadow",
-  "name": "Daddy Long Legs in Meadow",
+  "id": "drmorecreaturesformeadow",
+  "name": "DR's More Creatures for Meadow",
   "version": "0.1.0.0",
   "target_game_version": "v1.10.1",
-  "authors": "liz",
-  "description": "Adds your favorite long legs to meadow mode; letting you play as the rot. The rot must consume... NOTE: Traversal can be tricky!",
+  "authors": "danish",
+  "description": "Adds your aquapedes/centipedes and dropwigs!, and your favorite long legs to meadow mode; letting you play as the rot. The rot must consume... NOTE: Traversal can be tricky for a long legs!",
   "requirements": ["henpemaz_rainmeadow", "rwremix", "moreslugcats"],
   "requirements_names": ["Rain Meadow", "Rain World Remix", "More Slugcats"],
   "checksum_override_version": false
