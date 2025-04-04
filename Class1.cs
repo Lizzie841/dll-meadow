@@ -170,6 +170,28 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
         // =============================================================
+        // SMALL MOTH
+        internal static MenuScene.SceneID Slugcat_MeadowBigMoth = new("Slugcat_MeadowBigMoth", true);
+        internal static SoundID RM_BigMoth_Call = new("RM_BigMoth_Call", true);
+        public static RainMeadow.MeadowProgression.Character BigMoth = new("BigMoth", true, new()
+        {
+            displayName = "MOTH",
+            emotePrefix = "bigmoth_",
+            emoteAtlas = "emotes_bigmoth",
+            emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
+            voiceId = RM_BigMoth_Call,
+            selectSpriteIndexes = new[] { 2 },
+            startingCoords = new WorldCoordinate("SU_B01", 16, 16, -1),
+        });
+        public static RainMeadow.MeadowProgression.Skin BigMoth_Small = new("BigMoth_Small", true, new()
+        {
+            character = BigMoth,
+            displayName = "BigMoth",
+            creatureType = CreatureTemplate.Type.SmallNeedleWorm, //fallback
+            randomSeed = 4211,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        // =============================================================
 
         public void OnEnable()
         {
@@ -230,6 +252,10 @@ namespace DllMeadow
                 else if (creature is PoleMimic p4)
                 {
                     new PoleMimicController(p4, oc, 0, customization);
+                }
+                else if (creature is Watcher.BigMoth p5)
+                {
+                    new BigMothController(p5, oc, 0, customization);
                 }
                 else
                 {
@@ -329,6 +355,27 @@ namespace DllMeadow
                     (self as InteractiveMenuScene).idleDepths.Add(1.5f);
                 }
             }
+            // POLEMIMIC
+            else if (self.sceneID == Slugcat_MeadowBigMoth)
+            {
+                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - polemimic";
+                if (self.flatMode)
+                {
+                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
+                }
+                else
+                {
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
+                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
+                }
+            }
             //
             if (string.IsNullOrEmpty(self.sceneFolder))
             {
@@ -373,6 +420,10 @@ namespace DllMeadow
                 {
                     sceneID = Slugcat_MeadowPoleMimic;
                 }
+                else if (mcsp.character == BigMoth)
+                {
+                    sceneID = Slugcat_MeadowBigMoth;
+                }
                 // evaluation
                 if (sceneID == null)
                 {
@@ -416,15 +467,20 @@ namespace DllMeadow
                     CentipedeController.EnableCentipede();
                     DropBugController.EnableDropBug();
                     PoleMimicController.EnablePoleMimic();
+                    BigMothController.EnableBigMoth();
 
-                    // fix
+                    // fixups
                     if (DLCSharedEnums.CreatureTemplateType.AquaCenti != null)
                     {
                         RainMeadow.MeadowProgression.skinData[Centipede_Aquacenti].creatureType = DLCSharedEnums.CreatureTemplateType.AquaCenti;
                     }
-                    else if (DLCSharedEnums.CreatureTemplateType.TerrorLongLegs != null)
+                    if (DLCSharedEnums.CreatureTemplateType.TerrorLongLegs != null)
                     {
                         RainMeadow.MeadowProgression.skinData[DaddyLongLegs_Purple].creatureType = DLCSharedEnums.CreatureTemplateType.TerrorLongLegs;
+                    }
+                    if (Watcher.WatcherEnums.CreatureTemplateType.SmallMoth != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[BigMoth_Small].creatureType = Watcher.WatcherEnums.CreatureTemplateType.SmallMoth;
                     }
 
                     var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
