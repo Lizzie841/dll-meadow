@@ -7,9 +7,7 @@ namespace DllMeadow
 {
     class CentipedeController : RainMeadow.CreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
-
         private readonly Centipede centipede;
 
         internal static void EnableCentipede()
@@ -61,7 +59,7 @@ namespace DllMeadow
 
         private static void Centipede_Act(On.Centipede.orig_Act orig, Centipede self)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as CentipedeController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.AI.centipede.abstractCreature.controlled;

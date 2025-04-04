@@ -7,7 +7,6 @@ namespace DllMeadow
 {
     class PoleMimicController : RainMeadow.CreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
 
         private readonly PoleMimic polemimic;
@@ -36,7 +35,7 @@ namespace DllMeadow
 
         private static void PoleMimic_Act(On.PoleMimic.orig_Act orig, PoleMimic self)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as PoleMimicController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.abstractCreature.controlled;

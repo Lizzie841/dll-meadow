@@ -5,11 +5,10 @@ using UnityEngine;
 
 namespace DllMeadow
 {
-    class BigMothController : RainMeadow.CreatureController
+    class BigMothController : RainMeadow.GroundCreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
-
+        private bool forceFly;
         private readonly Watcher.BigMoth bigmoth;
 
         internal static void EnableBigMoth()
@@ -50,6 +49,14 @@ namespace DllMeadow
         {
             if (creatureControllers.TryGetValue(self, out var p))
             {
+                if ((p as BigMothController).forceFly)
+                {
+                    (p as BigMothController).bigmoth.wantToFlyCounter = 0;
+                }
+                else
+                {
+                    (p as BigMothController).bigmoth.wantToFlyCounter = 100;
+                }
                 p.Update(eu);
                 var old = self.AI.bug.abstractCreature.controlled;
                 self.AI.bug.abstractCreature.controlled = true;//глючное
@@ -64,7 +71,7 @@ namespace DllMeadow
 
         private static void BigMoth_Act(On.Watcher.BigMoth.orig_Act orig, Watcher.BigMoth self)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as BigMothController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.AI.bug.abstractCreature.controlled;
@@ -95,21 +102,59 @@ namespace DllMeadow
         public BigMothController(Watcher.BigMoth creature, RainMeadow.OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
         {
             this.bigmoth = creature;
-            //var c1 = this.bigmoth.effectColor;
-            //this.ModifyBodyColor(customization, ref c1);
+        }
+
+        public override bool HasFooting => bigmoth.legsOnGround >= 2;
+        public override bool IsOnGround => IsTileGround(0, 0, -1) || IsTileGround(1, 0, -1);
+        public override bool IsOnPole => !IsOnGround && GetTile(0).AnyBeam;
+        public override bool IsOnCorridor => GetAITile(0).narrowSpace;
+        public override bool IsOnClimb
+        {
+            get
+            {
+                var acc = GetAITile(0).acc;
+                if (acc == AItile.Accessibility.Climb || acc == AItile.Accessibility.Wall)
+                {
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        protected override void GripPole(Room.Tile tile0)
+        {
+            forceFly = false;
+            for (int i = 0; i < creature.bodyChunks.Length; i++)
+            {
+                creature.bodyChunks[i].vel *= 0.25f;
+            }
+            creature.mainBodyChunk.vel += 0.2f * (creature.room.MiddleOfTile(tile0.X, tile0.Y) - creature.mainBodyChunk.pos);
+        }
+
+        protected override void OnJump()
+        {
+            forceFly = true;
+        }
+
+        protected override void MovementOverride(MovementConnection movementConnection)
+        {
+        }
+
+        protected override void ClearMovementOverride()
+        {
         }
 
         protected override void LookImpl(Vector2 pos)
         {
-            //bigmoth.AI.reactTarget = Custom.MakeWorldCoordinate(new IntVector2((int)(pos.x / 20f), (int)(pos.y / 20f)), this.bigmoth.room.abstractRoom.index);
         }
 
         protected override void Moving(float magnitude)
         {
             if (bigmoth != null)
             {
-                bigmoth.AI.behavior = Watcher.BigMothAI.Behavior.Idle;
+                bigmoth.AI.behavior = Watcher.BigMothAI.Behavior.Attack;
                 forceMove = true;
+                forceFly = false;
             }
         }
 
@@ -119,17 +164,16 @@ namespace DllMeadow
             {
                 bigmoth.AI.behavior = Watcher.BigMothAI.Behavior.Idle;
                 forceMove = false;
+                forceFly = false;
             }
         }
 
         protected override void OnCall()
         {
-            //truly
         }
 
         protected override void PointImpl(Vector2 dir)
         {
-            //uh
         }
     }
 }

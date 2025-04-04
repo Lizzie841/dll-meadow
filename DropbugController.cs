@@ -7,9 +7,7 @@ namespace DllMeadow
 {
     class DropBugController : RainMeadow.CreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
-
         private readonly DropBug dropbug;
 
         internal static void EnableDropBug()
@@ -61,7 +59,7 @@ namespace DllMeadow
 
         private static void DropBug_Act(On.DropBug.orig_Act orig, DropBug self)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as DropBugController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.AI.bug.abstractCreature.controlled;

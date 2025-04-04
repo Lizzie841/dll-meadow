@@ -7,9 +7,7 @@ namespace DllMeadow
 {
     class BarnacleController : RainMeadow.GroundCreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
-
         private readonly Watcher.Barnacle barnacle;
 
         internal static void EnableBarnacle()
@@ -64,7 +62,7 @@ namespace DllMeadow
 
         private static void Barnacle_Act(On.Watcher.Barnacle.orig_Act orig, Watcher.Barnacle self)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as BarnacleController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.AI.realizedCreature.abstractCreature.controlled;
@@ -95,8 +93,6 @@ namespace DllMeadow
         public BarnacleController(Watcher.Barnacle creature, RainMeadow.OnlineCreature oc, int playerNumber, RainMeadow.MeadowAvatarData customization) : base(creature, oc, playerNumber, customization)
         {
             this.barnacle = creature;
-            //var c1 = this.barnacle.effectColor;
-            //this.ModifyBodyColor(customization, ref c1);
         }
 
         public override bool HasFooting => barnacle.Footing;
@@ -120,7 +116,6 @@ namespace DllMeadow
         {
             if (barnacle.footingCounter < 10)
             {
-                creature.room.PlaySound(SoundID.Egg_Bug_Scurry, creature.mainBodyChunk);
                 for (int i = 0; i < creature.bodyChunks.Length; i++)
                 {
                     creature.bodyChunks[i].vel *= 0.25f;
@@ -152,7 +147,6 @@ namespace DllMeadow
 
         protected override void LookImpl(Vector2 pos)
         {
-            //barnacle.AI.reactTarget = Custom.MakeWorldCoordinate(new IntVector2((int)(pos.x / 20f), (int)(pos.y / 20f)), this.barnacle.room.abstractRoom.index);
         }
 
         protected override void Moving(float magnitude)
@@ -175,12 +169,10 @@ namespace DllMeadow
 
         protected override void OnCall()
         {
-            //truly
         }
 
         protected override void PointImpl(Vector2 dir)
         {
-            //uh
         }
     }
 }

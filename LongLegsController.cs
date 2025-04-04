@@ -7,7 +7,6 @@ namespace DllMeadow
 {
     class LongLegsController : RainMeadow.CreatureController
     {
-        private bool actLock; // act is hooked both at base and an override
         private bool forceMove;
 
         private readonly DaddyLongLegs longlegs;
@@ -61,7 +60,7 @@ namespace DllMeadow
 
         private static void DaddyLongLegs_Act(On.DaddyLongLegs.orig_Act orig, DaddyLongLegs self, int legsGrabbing)
         {
-            if (creatureControllers.TryGetValue(self, out var p) && !(p as LongLegsController).actLock)
+            if (creatureControllers.TryGetValue(self, out var p))
             {
                 p.ConsciousUpdate();
                 var old = self.AI.daddy.abstractCreature.controlled;
@@ -102,11 +101,12 @@ namespace DllMeadow
 
         protected override void LookImpl(Vector2 pos)
         {
-            longlegs.AI.reactTarget = Custom.MakeWorldCoordinate(new IntVector2((int)(pos.x / 20f), (int)(pos.y / 20f)), this.longlegs.room.abstractRoom.index);
-            //longlegs.abstractAI.SetDestination(this.reactTarget);
-			//longlegs.AI.pathFinder.ForceNextDestination();
-            //longlegs.lookDir = (pos - creature.DangerPos).normalized;
-            //longlegs.getToLookDir = longlegs.lookDir;
+            // //longlegs.AI.reactTarget = Custom.MakeWorldCoordinate(new IntVector2((int)(pos.x / 20f), (int)(pos.y / 20f)), this.longlegs.room.abstractRoom.index);
+            // longlegs.tentacles[0].SwitchTask(DaddyTentacle.Task.Locomotion);
+            // var dir = Custom.DirVec(longlegs.mainBodyChunk.pos, pos);
+            // //if (longlegs.graphicsModule is DaddyGraphics graphics) graphics.lookDir = (mouse.mainBodyChunk.pos - pos) / 500f;
+            // longlegs.tentacles[0].Tip.vel += 0.5f * dir;
+            // longlegs.tentacles[0].Tip.vel -= 0.5f * dir;
         }
 
         protected override void Moving(float magnitude)
