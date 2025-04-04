@@ -192,6 +192,28 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
         // =============================================================
+        // BARNACLE
+        internal static MenuScene.SceneID Slugcat_MeadowBarnacle = new("Slugcat_MeadowBarnacle", true);
+        internal static SoundID RM_Barnacle_Call = new("RM_Barnacle_Call", true);
+        public static RainMeadow.MeadowProgression.Character Barnacle = new("Barnacle", true, new()
+        {
+            displayName = "BARNACLE",
+            emotePrefix = "barnacle_",
+            emoteAtlas = "emotes_barnacle",
+            emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
+            voiceId = RM_Barnacle_Call,
+            selectSpriteIndexes = new[] { 2 },
+            startingCoords = new WorldCoordinate("SL_C09", 16, 16, -1),
+        });
+        public static RainMeadow.MeadowProgression.Skin Barnacle_Normal = new("Barnacle_Normal", true, new()
+        {
+            character = Barnacle,
+            displayName = "Barnacle",
+            creatureType = CreatureTemplate.Type.Snail, //fallback
+            randomSeed = 4211,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        // =============================================================
 
         public void OnEnable()
         {
@@ -256,6 +278,10 @@ namespace DllMeadow
                 else if (creature is Watcher.BigMoth p5)
                 {
                     new BigMothController(p5, oc, 0, customization);
+                }
+                else if (creature is Watcher.Barnacle p6)
+                {
+                    new BarnacleController(p6, oc, 0, customization);
                 }
                 else
                 {
@@ -376,6 +402,27 @@ namespace DllMeadow
                     (self as InteractiveMenuScene).idleDepths.Add(1.5f);
                 }
             }
+            // BARNACLE
+            else if (self.sceneID == Slugcat_MeadowBarnacle)
+            {
+                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - barnacle";
+                if (self.flatMode)
+                {
+                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
+                }
+                else
+                {
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
+                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
+                }
+            }
             //
             if (string.IsNullOrEmpty(self.sceneFolder))
             {
@@ -424,6 +471,10 @@ namespace DllMeadow
                 {
                     sceneID = Slugcat_MeadowBigMoth;
                 }
+                else if (mcsp.character == Barnacle)
+                {
+                    sceneID = Slugcat_MeadowBarnacle;
+                }
                 // evaluation
                 if (sceneID == null)
                 {
@@ -468,6 +519,7 @@ namespace DllMeadow
                     DropBugController.EnableDropBug();
                     PoleMimicController.EnablePoleMimic();
                     BigMothController.EnableBigMoth();
+                    BarnacleController.EnableBarnacle();
 
                     // fixups
                     if (DLCSharedEnums.CreatureTemplateType.AquaCenti != null)
@@ -481,6 +533,10 @@ namespace DllMeadow
                     if (Watcher.WatcherEnums.CreatureTemplateType.SmallMoth != null)
                     {
                         RainMeadow.MeadowProgression.skinData[BigMoth_Small].creatureType = Watcher.WatcherEnums.CreatureTemplateType.SmallMoth;
+                    }
+                    if (Watcher.WatcherEnums.CreatureTemplateType.Barnacle != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[Barnacle_Normal].creatureType = Watcher.WatcherEnums.CreatureTemplateType.Barnacle;
                     }
 
                     var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
