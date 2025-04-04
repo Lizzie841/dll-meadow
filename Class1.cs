@@ -126,7 +126,7 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x2796c2),
         });
         // =============================================================
-        // CENTIPEDE
+        // DROPBUG
         internal static MenuScene.SceneID Slugcat_MeadowDropBug = new("Slugcat_MeadowDropBug", true);
         internal static SoundID RM_DropBug_Call = new("RM_DropBug_Call", true);
         public static RainMeadow.MeadowProgression.Character DropBug = new("DropBug", true, new()
@@ -148,6 +148,28 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
         // =============================================================
+        // POLE PLANT
+        internal static MenuScene.SceneID Slugcat_MeadowPoleMimic = new("Slugcat_MeadowPoleMimic", true);
+        internal static SoundID RM_PoleMimic_Call = new("RM_PoleMimic_Call", true);
+        public static RainMeadow.MeadowProgression.Character PoleMimic = new("PoleMimic", true, new()
+        {
+            displayName = "POLE MIMIC",
+            emotePrefix = "polemimic_",
+            emoteAtlas = "emotes_polemimic",
+            emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
+            voiceId = RM_PoleMimic_Call,
+            selectSpriteIndexes = new[] { 2 },
+            startingCoords = new WorldCoordinate("SU_B01", -1, -1, 1),
+        });
+        public static RainMeadow.MeadowProgression.Skin PoleMimic_Normal = new("PoleMimic_Normal", true, new()
+        {
+            character = PoleMimic,
+            displayName = "PoleMimic",
+            creatureType = CreatureTemplate.Type.PoleMimic,
+            randomSeed = 9211,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        // =============================================================
 
         public void OnEnable()
         {
@@ -155,7 +177,37 @@ namespace DllMeadow
             On.RainWorld.OnModsInit += RainWorld_OnModsInit;
             On.Menu.SlugcatSelectMenu.SlugcatPage.AddImage += SlugcatPage_AddImage;
             On.Menu.MenuScene.BuildScene += MenuScene_BuildScene;
+            On.RainWorldGame.SpawnPlayers_bool_bool_bool_bool_WorldCoordinate += RainWorldGame_SpawnPlayers_bool_bool_bool_bool_WorldCoordinate; // Personas are set as non-transferable
             DeathContextualizer.CreateBindings();
+        }
+
+        // Avatars are set as non-transferable
+        private AbstractCreature RainWorldGame_SpawnPlayers_bool_bool_bool_bool_WorldCoordinate(On.RainWorldGame.orig_SpawnPlayers_bool_bool_bool_bool_WorldCoordinate orig, RainWorldGame self, bool player1, bool player2, bool player3, bool player4, WorldCoordinate location)
+        {
+            // kludge for pole plants
+            if (RainMeadow.OnlineManager.lobby != null)
+            {
+                if (RainMeadow.OnlineManager.lobby.gameMode is RainMeadow.MeadowGameMode mgm)
+                {
+                    var skinData = RainMeadow.MeadowProgression.skinData[mgm.avatarData.skin];
+                    if (skinData.creatureType == CreatureTemplate.Type.PoleMimic)
+                    {
+                        var newLocation = location;
+                        newLocation.x = -1;
+                        newLocation.y = -1;
+                        newLocation.abstractNode = 1;
+                        RainMeadow.RainMeadow.sSpawningAvatar = true;
+                        AbstractCreature abstractCreature = RainMeadow.OnlineManager.lobby.gameMode.SpawnAvatar(self, location);
+                        if (abstractCreature == null) abstractCreature = orig(self, player1, player2, player3, player4, location);
+                        // TODO: is this a good quick hack :(
+                        self.world.GetAbstractRoom(abstractCreature.pos.room).MoveEntityToDen(abstractCreature);
+                        RainMeadow.RainMeadow.sSpawningAvatar = false;
+                        return abstractCreature;
+                        //self.abstractRoom.MoveEntityToDen
+                    }
+                }
+            }
+            return orig(self, player1, player2, player3, player4, location);
         }
 
         public class DllHooks
@@ -174,6 +226,10 @@ namespace DllMeadow
                 else if (creature is DropBug p3)
                 {
                     new DropBugController(p3, oc, 0, customization);
+                }
+                else if (creature is PoleMimic p4)
+                {
+                    new PoleMimicController(p4, oc, 0, customization);
                 }
                 else
                 {
@@ -252,6 +308,28 @@ namespace DllMeadow
                     (self as InteractiveMenuScene).idleDepths.Add(1.5f);
                 }
             }
+            // POLEMIMIC
+            else if (self.sceneID == Slugcat_MeadowPoleMimic)
+            {
+                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - polemimic";
+                if (self.flatMode)
+                {
+                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
+                }
+                else
+                {
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
+                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
+                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
+                }
+            }
+            //
             if (string.IsNullOrEmpty(self.sceneFolder))
             {
                 return;
@@ -278,49 +356,30 @@ namespace DllMeadow
         {
             if (self.slugcatNumber == RainMeadow.RainMeadow.Ext_SlugcatStatsName.OnlineSessionPlayer && self is RainMeadow.MeadowCharacterSelectPage mcsp)
             {
+                MenuScene.SceneID sceneID = null;
                 if (mcsp.character == DaddyLongLegs)
                 {
-                    var sceneID = Slugcat_MeadowLongLegs;
-                    self.sceneOffset = new Vector2(-10f, 100f);
-                    self.slugcatDepth = 3.1000001f;
-                    //
-                    self.slugcatImage = new InteractiveMenuScene(self.menu, self, sceneID);
-                    self.subObjects.Add(self.slugcatImage);
-                    if (self.HasMark)
-                    {
-                        self.markSquare = new FSprite("pixel", true);
-                        self.markSquare.scale = 14f;
-                        self.markSquare.color = Color.Lerp(self.effectColor, Color.white, 0.7f);
-                        self.Container.AddChild(self.markSquare);
-                        self.markGlow = new FSprite("Futile_White", true);
-                        self.markGlow.shader = self.menu.manager.rainWorld.Shaders["FlatLight"];
-                        self.markGlow.color = self.effectColor;
-                        self.Container.AddChild(self.markGlow);
-                    }
+                    sceneID = Slugcat_MeadowLongLegs;
                 }
                 else if (mcsp.character == Centipede)
                 {
-                    var sceneID = Slugcat_MeadowCentipede;
-                    self.sceneOffset = new Vector2(-10f, 100f);
-                    self.slugcatDepth = 3.1000001f;
-                    //
-                    self.slugcatImage = new InteractiveMenuScene(self.menu, self, sceneID);
-                    self.subObjects.Add(self.slugcatImage);
-                    if (self.HasMark)
-                    {
-                        self.markSquare = new FSprite("pixel", true);
-                        self.markSquare.scale = 14f;
-                        self.markSquare.color = Color.Lerp(self.effectColor, Color.white, 0.7f);
-                        self.Container.AddChild(self.markSquare);
-                        self.markGlow = new FSprite("Futile_White", true);
-                        self.markGlow.shader = self.menu.manager.rainWorld.Shaders["FlatLight"];
-                        self.markGlow.color = self.effectColor;
-                        self.Container.AddChild(self.markGlow);
-                    }
+                    sceneID = Slugcat_MeadowCentipede;
                 }
                 else if (mcsp.character == DropBug)
                 {
-                    var sceneID = Slugcat_MeadowDropBug;
+                    sceneID = Slugcat_MeadowDropBug;
+                }
+                else if (mcsp.character == PoleMimic)
+                {
+                    sceneID = Slugcat_MeadowPoleMimic;
+                }
+                // evaluation
+                if (sceneID == null)
+                {
+                    orig(self, ascended);
+                }
+                else
+                {
                     self.sceneOffset = new Vector2(-10f, 100f);
                     self.slugcatDepth = 3.1000001f;
                     //
@@ -337,10 +396,6 @@ namespace DllMeadow
                         self.markGlow.color = self.effectColor;
                         self.Container.AddChild(self.markGlow);
                     }
-                }
-                else
-                {
-                    orig(self, ascended);
                 }
             }
             else
@@ -360,6 +415,7 @@ namespace DllMeadow
                     LongLegsController.EnableLongLegs();
                     CentipedeController.EnableCentipede();
                     DropBugController.EnableDropBug();
+                    PoleMimicController.EnablePoleMimic();
 
                     // fix
                     if (DLCSharedEnums.CreatureTemplateType.AquaCenti != null)
