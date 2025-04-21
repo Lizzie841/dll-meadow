@@ -101,6 +101,14 @@ namespace DllMeadow
             randomSeed = 9814,
             previewColor = RainMeadow.Extensions.ColorFromHex(0x460fdb),
         });
+        public static RainMeadow.MeadowProgression.Skin Centipede_Normal = new("Centipede_Normal", true, new()
+        {
+            character = Centipede,
+            displayName = "Centipede",
+            creatureType = CreatureTemplate.Type.Centipede,
+            randomSeed = 9814,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x460fdb),
+        });
         public static RainMeadow.MeadowProgression.Skin Centipede_Red = new("Centipede_Red", true, new()
         {
             character = Centipede,
@@ -214,6 +222,23 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
         // =============================================================
+        // EXTENSIONS TO LIZARDS
+        public static RainMeadow.MeadowProgression.Skin Lizard_Strawberry = new("Lizard_Strawberry", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Lizard,
+            displayName = "Strawberry Lizard",
+            creatureType = CreatureTemplate.Type.PinkLizard, //fallback
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        public static RainMeadow.MeadowProgression.Skin Lizard_Train = new("Lizard_Train", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Lizard,
+            displayName = "Train Lizard",
+            creatureType = CreatureTemplate.Type.PinkLizard, //fallback
+            randomSeed = 34343,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
 
         public void OnEnable()
         {
@@ -223,6 +248,8 @@ namespace DllMeadow
             On.Menu.MenuScene.BuildScene += MenuScene_BuildScene;
             On.RainWorldGame.SpawnPlayers_bool_bool_bool_bool_WorldCoordinate += RainWorldGame_SpawnPlayers_bool_bool_bool_bool_WorldCoordinate; // Personas are set as non-transferable
             DeathContextualizer.CreateBindings();
+            // temporal meadow fixes
+            TemporalFixUntilMeadowRelease();
         }
 
         // Avatars are set as non-transferable
@@ -530,6 +557,14 @@ namespace DllMeadow
                     {
                         RainMeadow.MeadowProgression.skinData[DaddyLongLegs_Purple].creatureType = DLCSharedEnums.CreatureTemplateType.TerrorLongLegs;
                     }
+                    if (DLCSharedEnums.CreatureTemplateType.ZoopLizard != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[Lizard_Strawberry].creatureType ??= DLCSharedEnums.CreatureTemplateType.ZoopLizard;
+                    }
+                    if (MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.TrainLizard != null)
+                    {
+                        RainMeadow.MeadowProgression.skinData[Lizard_Train].creatureType = MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.TrainLizard;
+                    }
                     if (Watcher.WatcherEnums.CreatureTemplateType.SmallMoth != null)
                     {
                         RainMeadow.MeadowProgression.skinData[BigMoth_Small].creatureType = Watcher.WatcherEnums.CreatureTemplateType.SmallMoth;
@@ -550,6 +585,39 @@ namespace DllMeadow
                     fullyInit = false;
                 }
             }
+        }
+
+        private void TemporalFixUntilMeadowRelease() {
+            IL.HUD.Map.GetSaveState += (ILContext il) => {
+                try
+                {
+                    var c = new ILCursor(il);
+                    var loc = il.Body.Variables.First(v => v.VariableType.Name == "SaveState").Index;
+                    ILLabel vanilla = il.DefineLabel();
+                    ILLabel skipToEnd = null;
+                    Mono.Cecil.MethodReference op_Ineq = null;
+                    c.GotoNext(moveType: MoveType.After,
+                        i => i.MatchLdsfld<HUD.HUD.OwnerType>("RegionOverview"),
+                        i => i.MatchCall(out op_Ineq),
+                        i => i.MatchBrfalse(out skipToEnd)
+                    );
+                    c.Emit(OpCodes.Ldarg_0);
+                    c.EmitDelegate((HUD.Map map) => map.hud.owner.GetOwnerType() != RainMeadow.CreatureController.controlledCreatureHudOwner);
+                    c.Emit(OpCodes.Brtrue, vanilla);
+                    c.Emit(OpCodes.Ldarg_0);
+                    c.Emit<HUD.HudPart>(OpCodes.Ldfld, "hud");
+                    c.Emit<HUD.HUD>(OpCodes.Ldfld, "rainWorld");
+                    c.Emit<RainWorld>(OpCodes.Ldfld, "progression");
+                    c.Emit<PlayerProgression>(OpCodes.Ldfld, "currentSaveState");
+                    c.Emit(OpCodes.Stloc, loc);
+                    c.Emit(OpCodes.Br, skipToEnd);
+                    c.MarkLabel(vanilla);
+                }
+                catch (Exception e)
+                {
+                    Logger.LogError(e);
+                }
+            };
         }
     }
 }
