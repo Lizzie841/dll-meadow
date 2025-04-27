@@ -1,3 +1,7 @@
 [ADD]RM_LongLegs_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
-[ADD]RM_Centipede_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
-[ADD]RM_DropBug_Call : ShriekA/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_Centipede_Call : Centipede_Electric_Charge_LOOP/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_DropBug_Call : Drop_Bug_Voice/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_PoleMimic_Call : Pole_Mimic_Movement_LOOP/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_BigMoth_Call : RWTW_Moth_Chatter_01/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_Barnacle_Call : Barnacle_Shell_Clink/minVol=0.22/maxVol=0.3/minPitch=0.8/maxPitch=1.2
+[ADD]RM_RedLizard_Call : LizardVoiceRedA/minVol=0.3/maxVol=0.4/minPitch=0.9/maxPitch=1.3

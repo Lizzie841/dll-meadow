@@ -27,7 +27,7 @@ namespace DllMeadow
     public partial class DllMeadow : BaseUnityPlugin
     {
         public const string MeadowVersionStr = "0.1.0";
-        public static DllMeadow instance;
+        public static DllMeadow? instance;
         private bool init;
         private bool fullyInit;
         private bool addedMod = false;
@@ -240,6 +240,69 @@ namespace DllMeadow
             previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
         });
 
+        //
+        internal static MenuScene.SceneID Slugcat_MeadowRedLizard = new("Slugcat_MeadowRedLizard", true);
+        internal static SoundID RM_RedLizard_Call = new("RM_RedLizard_Call", true);
+        public static RainMeadow.MeadowProgression.Character RedLizard = new("Red Lizard", true, new()
+        {
+            displayName = "RED LIZARD",
+            emotePrefix = "lizard_",
+            emoteAtlas = "emotes_lizard",
+            emoteColor = RainMeadow.Extensions.ColorFromHex(0x2f2ac9),
+            voiceId = RM_RedLizard_Call,
+            selectSpriteIndexes = new[] { 2 },
+            startingCoords = new WorldCoordinate("SL_C09", 16, 16, -1),
+        });
+        public static RainMeadow.MeadowProgression.Skin Lizard_RedRed = new("Lizard_RedRed", true, new()
+        {
+            character = RedLizard,
+            displayName = "Red Lizard",
+            creatureType = CreatureTemplate.Type.RedLizard, //fallback
+            randomSeed = 34343,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        //
+        public static RainMeadow.MeadowProgression.Skin Slugcat_Rivulet = new("Slugcat_Rivulet", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Slugcat,
+            displayName = "Rivulet",
+            creatureType = CreatureTemplate.Type.Slugcat,
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        public static RainMeadow.MeadowProgression.Skin Slugcat_Spearmaster = new("Slugcat_Spearmaster", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Slugcat,
+            displayName = "Spearmaster",
+            creatureType = CreatureTemplate.Type.Slugcat,
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        public static RainMeadow.MeadowProgression.Skin Slugcat_Saint = new("Slugcat_Saint", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Slugcat,
+            displayName = "Saint",
+            creatureType = CreatureTemplate.Type.Slugcat,
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        public static RainMeadow.MeadowProgression.Skin Slugcat_Artificer = new("Slugcat_Artificer", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Slugcat,
+            displayName = "Artificer",
+            creatureType = CreatureTemplate.Type.Slugcat,
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+        public static RainMeadow.MeadowProgression.Skin Slugcat_Gourmand = new("Slugcat_Gourmand", true, new()
+        {
+            character = RainMeadow.MeadowProgression.Character.Slugcat,
+            displayName = "Gourmand",
+            creatureType = CreatureTemplate.Type.Slugcat,
+            randomSeed = 6454,
+            previewColor = RainMeadow.Extensions.ColorFromHex(0x808080),
+        });
+
         public void OnEnable()
         {
             instance = this;
@@ -248,8 +311,6 @@ namespace DllMeadow
             On.Menu.MenuScene.BuildScene += MenuScene_BuildScene;
             On.RainWorldGame.SpawnPlayers_bool_bool_bool_bool_WorldCoordinate += RainWorldGame_SpawnPlayers_bool_bool_bool_bool_WorldCoordinate; // Personas are set as non-transferable
             DeathContextualizer.CreateBindings();
-            // temporal meadow fixes
-            TemporalFixUntilMeadowRelease();
         }
 
         // Avatars are set as non-transferable
@@ -283,6 +344,32 @@ namespace DllMeadow
 
         public class DllHooks
         {
+            private static SlugcatStats.Name? GetSlugcatBySkin(RainMeadow.MeadowProgression.Skin s)
+            {
+                if (s == Slugcat_Rivulet) return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Rivulet;
+                else if (s == Slugcat_Artificer) return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Artificer;
+                else if (s == Slugcat_Gourmand) return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Gourmand;
+                else if (s == Slugcat_Saint) return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Saint;
+                else if (s == Slugcat_Spearmaster) return MoreSlugcats.MoreSlugcatsEnums.SlugcatStatsName.Spear;
+                return RainMeadow.RainMeadow.Ext_SlugcatStatsName.OnlineSessionPlayer;
+            } 
+
+            private delegate AbstractCreature orig_SpawnAvatar(RainMeadow.MeadowGameMode self, RainWorldGame game, WorldCoordinate location);
+            private static AbstractCreature SpawnAvatar(orig_SpawnAvatar orig, RainMeadow.MeadowGameMode self, RainWorldGame game, WorldCoordinate location)
+            {
+                var skinData = RainMeadow.MeadowProgression.skinData[self.avatarData.skin];
+                if (skinData.creatureType == CreatureTemplate.Type.Slugcat && GetSlugcatBySkin(self.avatarData.skin) is SlugcatStats.Name stat)
+                {
+                    var ac = new AbstractCreature(game.world, StaticWorld.GetCreatureTemplate(skinData.creatureType), null, location, new EntityID(-1, skinData.randomSeed));
+                    ac.state = new PlayerState(ac, 0, stat, false);
+                    game.session.AddPlayer(ac);
+                    game.world.GetAbstractRoom(ac.pos.room).AddEntity(ac);
+                    RainMeadow.RainMeadow.Debug($"EXTRA SPAWNS AVATAR! {ac}");
+                    return ac;
+                }
+                return orig(self, game, location);
+            }
+
             private delegate void orig_BindAvatar(Creature creature, RainMeadow.OnlineCreature oc, RainMeadow.MeadowAvatarData customization);
             private static void BindAvatar(orig_BindAvatar orig, Creature creature, RainMeadow.OnlineCreature oc, RainMeadow.MeadowAvatarData customization)
             {
@@ -317,144 +404,71 @@ namespace DllMeadow
             }
         }
 
+        private static void BuildScene_Helper1(MenuScene self, string suffix)
+        {
+            var sep = Path.DirectorySeparatorChar.ToString();
+            self.sceneFolder = $"Scenes{sep}meadow - {suffix}";
+            if (self.flatMode)
+            {
+                self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
+            }
+            else
+            {
+                self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, $"rm{suffix} bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, $"rm{suffix} lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
+                self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, $"rm{suffix} noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, $"rm{suffix} fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                if (self is InteractiveMenuScene ims)
+                {
+                    ims.idleDepths.Add(3.2f);
+                    ims.idleDepths.Add(2.2f);
+                    ims.idleDepths.Add(2.1f);
+                    ims.idleDepths.Add(2.0f);
+                    ims.idleDepths.Add(1.5f);
+                }
+            }
+        }
+
         private void MenuScene_BuildScene(On.Menu.MenuScene.orig_BuildScene orig, MenuScene self)
         {
             orig(self);
-            if (!string.IsNullOrEmpty(self.sceneFolder))
+            if (!string.IsNullOrEmpty(self.sceneFolder)) return;
+
+            if (self.sceneID == Slugcat_MeadowLongLegs) BuildScene_Helper1(self, "longlegs");
+            else if (self.sceneID == Slugcat_MeadowCentipede) BuildScene_Helper1(self, "centipede");
+            else if (self.sceneID == Slugcat_MeadowDropBug) BuildScene_Helper1(self, "dropbug");
+            else if (self.sceneID == Slugcat_MeadowPoleMimic) BuildScene_Helper1(self, "polemimic");
+            else if (self.sceneID == Slugcat_MeadowBigMoth) BuildScene_Helper1(self, "smallmoth");
+            else if (self.sceneID == Slugcat_MeadowBarnacle) BuildScene_Helper1(self, "barnacle");
+            // RED LIZARD
+            else if (self.sceneID == Slugcat_MeadowRedLizard)
             {
+                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - lizard";
+                if (self.flatMode)
+                {
+                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowLizard - Flat", new Vector2(683f, 384f), false, true));
+                }
+                else
+                {
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmliz bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmliz liz1", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmliz liz2", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
+                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmliz fgplants", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
+                    if (self is InteractiveMenuScene ims)
+                    {
+                        ims.idleDepths.Add(3.2f);
+                        ims.idleDepths.Add(2.2f);
+                        ims.idleDepths.Add(2.1f);
+                        ims.idleDepths.Add(2.0f);
+                        ims.idleDepths.Add(1.5f);
+                    }
+                }
+            }
+            else
+            { //no scene valid folder
                 return;
             }
-            // DADDY LONG LEGS
-            if (self.sceneID == Slugcat_MeadowLongLegs)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - longlegs";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmlonglegs bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmlonglegs lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmlonglegs noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmlonglegs fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            // CENTIPEDE
-            else if (self.sceneID == Slugcat_MeadowCentipede)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - centipede";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmcentipede fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            // DROPBUG
-            else if (self.sceneID == Slugcat_MeadowDropBug)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - dropbug";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmdropbug fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            // POLEMIMIC
-            else if (self.sceneID == Slugcat_MeadowPoleMimic)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - polemimic";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            // POLEMIMIC
-            else if (self.sceneID == Slugcat_MeadowBigMoth)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - polemimic";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmpolemimic fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            // BARNACLE
-            else if (self.sceneID == Slugcat_MeadowBarnacle)
-            {
-                self.sceneFolder = "Scenes" + Path.DirectorySeparatorChar.ToString() + "meadow - barnacle";
-                if (self.flatMode)
-                {
-                    self.AddIllustration(new MenuIllustration(self.menu, self, self.sceneFolder, "MeadowMouse - Flat", new Vector2(683f, 384f), false, true));
-                }
-                else
-                {
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle bg", new Vector2(0f, 0f), 3.5f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle lights", new Vector2(0f, 0f), 2.4f, MenuDepthIllustration.MenuShader.SoftLight));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle noot", new Vector2(0f, 0f), 2.2f, MenuDepthIllustration.MenuShader.Normal));
-                    self.AddIllustration(new MenuDepthIllustration(self.menu, self, self.sceneFolder, "rmbarnacle fg", new Vector2(0f, 0f), 2.1f, MenuDepthIllustration.MenuShader.LightEdges));
-                    (self as InteractiveMenuScene).idleDepths.Add(3.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.2f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.1f);
-                    (self as InteractiveMenuScene).idleDepths.Add(2.0f);
-                    (self as InteractiveMenuScene).idleDepths.Add(1.5f);
-                }
-            }
-            //
-            if (string.IsNullOrEmpty(self.sceneFolder))
-            {
-                return;
-            }
+            if (string.IsNullOrEmpty(self.sceneFolder)) return;
             string path2 = AssetManager.ResolveFilePath(self.sceneFolder + Path.DirectorySeparatorChar.ToString() + "positions_ims.txt");
             if (!File.Exists(path2) || !(self is InteractiveMenuScene))
             {
@@ -473,58 +487,36 @@ namespace DllMeadow
             }
         }
 
+        private static MenuScene.SceneID? PageFromCharacter(RainMeadow.MeadowProgression.Character c)
+        {
+            if (c == DaddyLongLegs) return Slugcat_MeadowLongLegs;
+            else if (c == Centipede) return Slugcat_MeadowCentipede;
+            else if (c == DropBug) return Slugcat_MeadowDropBug;
+            else if (c == PoleMimic) return Slugcat_MeadowPoleMimic;
+            else if (c == BigMoth) return Slugcat_MeadowBigMoth;
+            else if (c == Barnacle) return Slugcat_MeadowBarnacle;
+            else if (c == RedLizard) return Slugcat_MeadowRedLizard;
+            return null;
+        }
+
         private void SlugcatPage_AddImage(On.Menu.SlugcatSelectMenu.SlugcatPage.orig_AddImage orig, SlugcatSelectMenu.SlugcatPage self, bool ascended)
         {
-            if (self.slugcatNumber == RainMeadow.RainMeadow.Ext_SlugcatStatsName.OnlineSessionPlayer && self is RainMeadow.MeadowCharacterSelectPage mcsp)
+            if (self.slugcatNumber == RainMeadow.RainMeadow.Ext_SlugcatStatsName.OnlineSessionPlayer && self is RainMeadow.MeadowCharacterSelectPage mcsp && PageFromCharacter(mcsp.character) is MenuScene.SceneID sceneID)
             {
-                MenuScene.SceneID sceneID = null;
-                if (mcsp.character == DaddyLongLegs)
+                self.sceneOffset = new Vector2(-10f, 100f);
+                self.slugcatDepth = 3.1000001f;
+                self.slugcatImage = new InteractiveMenuScene(self.menu, self, sceneID);
+                self.subObjects.Add(self.slugcatImage);
+                if (self.HasMark)
                 {
-                    sceneID = Slugcat_MeadowLongLegs;
-                }
-                else if (mcsp.character == Centipede)
-                {
-                    sceneID = Slugcat_MeadowCentipede;
-                }
-                else if (mcsp.character == DropBug)
-                {
-                    sceneID = Slugcat_MeadowDropBug;
-                }
-                else if (mcsp.character == PoleMimic)
-                {
-                    sceneID = Slugcat_MeadowPoleMimic;
-                }
-                else if (mcsp.character == BigMoth)
-                {
-                    sceneID = Slugcat_MeadowBigMoth;
-                }
-                else if (mcsp.character == Barnacle)
-                {
-                    sceneID = Slugcat_MeadowBarnacle;
-                }
-                // evaluation
-                if (sceneID == null)
-                {
-                    orig(self, ascended);
-                }
-                else
-                {
-                    self.sceneOffset = new Vector2(-10f, 100f);
-                    self.slugcatDepth = 3.1000001f;
-                    //
-                    self.slugcatImage = new InteractiveMenuScene(self.menu, self, sceneID);
-                    self.subObjects.Add(self.slugcatImage);
-                    if (self.HasMark)
-                    {
-                        self.markSquare = new FSprite("pixel", true);
-                        self.markSquare.scale = 14f;
-                        self.markSquare.color = Color.Lerp(self.effectColor, Color.white, 0.7f);
-                        self.Container.AddChild(self.markSquare);
-                        self.markGlow = new FSprite("Futile_White", true);
-                        self.markGlow.shader = self.menu.manager.rainWorld.Shaders["FlatLight"];
-                        self.markGlow.color = self.effectColor;
-                        self.Container.AddChild(self.markGlow);
-                    }
+                    self.markSquare = new FSprite("pixel", true);
+                    self.markSquare.scale = 14f;
+                    self.markSquare.color = Color.Lerp(self.effectColor, Color.white, 0.7f);
+                    self.Container.AddChild(self.markSquare);
+                    self.markGlow = new FSprite("Futile_White", true);
+                    self.markGlow.shader = self.menu.manager.rainWorld.Shaders["FlatLight"];
+                    self.markGlow.color = self.effectColor;
+                    self.Container.AddChild(self.markGlow);
                 }
             }
             else
@@ -549,34 +541,24 @@ namespace DllMeadow
                     BarnacleController.EnableBarnacle();
 
                     // fixups
-                    if (DLCSharedEnums.CreatureTemplateType.AquaCenti != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[Centipede_Aquacenti].creatureType = DLCSharedEnums.CreatureTemplateType.AquaCenti;
-                    }
-                    if (DLCSharedEnums.CreatureTemplateType.TerrorLongLegs != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[DaddyLongLegs_Purple].creatureType = DLCSharedEnums.CreatureTemplateType.TerrorLongLegs;
-                    }
-                    if (DLCSharedEnums.CreatureTemplateType.ZoopLizard != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[Lizard_Strawberry].creatureType ??= DLCSharedEnums.CreatureTemplateType.ZoopLizard;
-                    }
-                    if (MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.TrainLizard != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[Lizard_Train].creatureType = MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.TrainLizard;
-                    }
-                    if (Watcher.WatcherEnums.CreatureTemplateType.SmallMoth != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[BigMoth_Small].creatureType = Watcher.WatcherEnums.CreatureTemplateType.SmallMoth;
-                    }
-                    if (Watcher.WatcherEnums.CreatureTemplateType.Barnacle != null)
-                    {
-                        RainMeadow.MeadowProgression.skinData[Barnacle_Normal].creatureType = Watcher.WatcherEnums.CreatureTemplateType.Barnacle;
-                    }
+                    RainMeadow.MeadowProgression.skinData[Centipede_Aquacenti].creatureType ??= DLCSharedEnums.CreatureTemplateType.AquaCenti;
+                    RainMeadow.MeadowProgression.skinData[DaddyLongLegs_Purple].creatureType ??= DLCSharedEnums.CreatureTemplateType.TerrorLongLegs;
+                    RainMeadow.MeadowProgression.skinData[Lizard_Strawberry].creatureType ??= DLCSharedEnums.CreatureTemplateType.ZoopLizard;
+                    RainMeadow.MeadowProgression.skinData[Lizard_Train].creatureType ??= MoreSlugcats.MoreSlugcatsEnums.CreatureTemplateType.TrainLizard;
+                    RainMeadow.MeadowProgression.skinData[BigMoth_Small].creatureType ??= Watcher.WatcherEnums.CreatureTemplateType.SmallMoth;
+                    RainMeadow.MeadowProgression.skinData[Barnacle_Normal].creatureType ??= Watcher.WatcherEnums.CreatureTemplateType.Barnacle;
 
-                    var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
-                    var methTo = typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
-                    var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
+                    {
+                        var methFrom = typeof(RainMeadow.CreatureController).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
+                        var methTo = typeof(DllHooks).GetMethod("BindAvatar", BindingFlags.NonPublic | BindingFlags.Static);
+                        var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
+                    }
+                    {
+                        var methFrom = typeof(RainMeadow.MeadowGameMode).GetMethod("SpawnAvatar", BindingFlags.Public | BindingFlags.Instance);
+                        var methTo = typeof(DllHooks).GetMethod("SpawnAvatar", BindingFlags.NonPublic | BindingFlags.Static);
+                        RainMeadow.RainMeadow.Debug($"{methFrom} -> {methTo}");
+                        var d = new MonoMod.RuntimeDetour.Hook(methFrom, methTo);
+                    }
                     fullyInit = true;
                 }
                 catch (Exception e)
@@ -585,39 +567,6 @@ namespace DllMeadow
                     fullyInit = false;
                 }
             }
-        }
-
-        private void TemporalFixUntilMeadowRelease() {
-            IL.HUD.Map.GetSaveState += (ILContext il) => {
-                try
-                {
-                    var c = new ILCursor(il);
-                    var loc = il.Body.Variables.First(v => v.VariableType.Name == "SaveState").Index;
-                    ILLabel vanilla = il.DefineLabel();
-                    ILLabel skipToEnd = null;
-                    Mono.Cecil.MethodReference op_Ineq = null;
-                    c.GotoNext(moveType: MoveType.After,
-                        i => i.MatchLdsfld<HUD.HUD.OwnerType>("RegionOverview"),
-                        i => i.MatchCall(out op_Ineq),
-                        i => i.MatchBrfalse(out skipToEnd)
-                    );
-                    c.Emit(OpCodes.Ldarg_0);
-                    c.EmitDelegate((HUD.Map map) => map.hud.owner.GetOwnerType() != RainMeadow.CreatureController.controlledCreatureHudOwner);
-                    c.Emit(OpCodes.Brtrue, vanilla);
-                    c.Emit(OpCodes.Ldarg_0);
-                    c.Emit<HUD.HudPart>(OpCodes.Ldfld, "hud");
-                    c.Emit<HUD.HUD>(OpCodes.Ldfld, "rainWorld");
-                    c.Emit<RainWorld>(OpCodes.Ldfld, "progression");
-                    c.Emit<PlayerProgression>(OpCodes.Ldfld, "currentSaveState");
-                    c.Emit(OpCodes.Stloc, loc);
-                    c.Emit(OpCodes.Br, skipToEnd);
-                    c.MarkLabel(vanilla);
-                }
-                catch (Exception e)
-                {
-                    Logger.LogError(e);
-                }
-            };
         }
     }
 }
